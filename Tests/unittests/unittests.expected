@@ -1,0 +1,5 @@
+1..3
+ok 1 - PolynomialAdditionBasic
+ok 2 - PolynomialAdditionDegenerate
+ok 3 - PolynomialAdditionNorm
+# UnitTest: passed 3 out of 3 tests, for a success rate of 100.0%
