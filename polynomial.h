@@ -1,53 +1,91 @@
-#ifndef POLYNOMIAL_H
-#define POLYNOMIAL_H
+#include "polynomial.h"
+#include <algorithm>
 
-#include <iostream>
-#include <initializer_list>
-#include <list>
-#include "term.h"
+// Normalize the polynomial: combine like terms and remove zero-coefficient terms
+void Polynomial::normalize() {
+    terms.sort([](const Term& a, const Term& b) { return a.power < b.power; }); // Sort terms by power
+    auto it = terms.begin();
+    while (it != terms.end()) {
+        auto next_it = std::next(it);
+        if (next_it != terms.end() && it->power == next_it->power) {
+            it->coefficient += next_it->coefficient; // Combine like terms
+            terms.erase(next_it);
+        } else {
+            if (it->coefficient == 0) {
+                it = terms.erase(it); // Remove zero-coefficient terms
+            } else {
+                ++it;
+            }
+        }
+    }
+}
 
-class Polynomial {
-public:
-    // Constructors
-    Polynomial();
-    Polynomial(int b, int a = 0);
-    Polynomial(std::initializer_list<Term> terms);
+// Default constructor
+Polynomial::Polynomial() {}
 
-    // Accessors
-    int getCoeff(int power) const;
-    int getDegree() const;
+// Constructor for constant polynomials
+Polynomial::Polynomial(int constant) {
+    if (constant != 0) {
+        terms.push_back(Term(constant, 0));
+    }
+}
 
-    // Arithmetic operations
-    Polynomial operator+(const Polynomial& p) const;
-    Polynomial operator*(int scale) const;
-    Polynomial operator*(Term term) const;
-    void operator*=(int scale);
-    Polynomial operator/(const Polynomial& p) const;
-    bool operator==(const Polynomial& p) const;
+// Constructor from an initializer list of terms
+Polynomial::Polynomial(std::initializer_list<Term> init_terms) : terms(init_terms) {
+    normalize();
+}
 
-    // Iterator declarations
-    using iterator = std::list<Term>::iterator;
-    using const_iterator = std::list<Term>::const_iterator;
+// Get the coefficient of a specific power
+int Polynomial::getCoeff(int power) const {
+    for (const auto& term : terms) {
+        if (term.power == power) return term.coefficient;
+    }
+    return 0; // Power not found
+}
 
-    // Iterator functions
-    iterator begin();
-    const_iterator begin() const;
-    iterator end();
-    const_iterator end() const;
+// Get the highest power of the polynomial
+int Polynomial::getDegree() const {
+    if (terms.empty()) return -1;
+    return terms.back().power;
+}
 
-private:
-    std::list<Term> terms; // List of terms, in ascending order of power
+// Addition of two polynomials
+Polynomial Polynomial::operator+(const Polynomial& other) const {
+    Polynomial result;
+    auto it1 = terms.begin(), it2 = other.terms.begin();
+    while (it1 != terms.end() && it2 != other.terms.end()) {
+        if (it1->power == it2->power) {
+            result.terms.push_back(Term(it1->coefficient + it2->coefficient, it1->power));
+            ++it1;
+            ++it2;
+        } else if (it1->power < it2->power) {
+            result.terms.push_back(*it1++);
+        } else {
+            result.terms.push_back(*it2++);
+        }
+    }
+    result.terms.insert(result.terms.end(), it1, terms.end());
+    result.terms.insert(result.terms.end(), it2, other.terms.end());
+    result.normalize();
+    return result;
+}
 
-    void normalize(); // Utility function to maintain polynomial in normal form
+// Polynomial multiplication (not implemented here)
+Polynomial Polynomial::operator*(const Polynomial& other) const {
+    // Implement polynomial multiplication logic
+    return Polynomial();
+}
 
-    // Friend declaration for output operator
-    friend std::ostream& operator<<(std::ostream&, const Polynomial&);
+// Polynomial subtraction (not implemented here)
+Polynomial Polynomial::operator-(const Polynomial& other) const {
+    // Implement polynomial subtraction logic
+    return Polynomial();
+}
 
-    // For use by instructor only
-    bool sanityCheck() const;
-};
-
-// Output operator declaration
-std::ostream& operator<<(std::ostream&, const Polynomial&);
-
-#endif // POLYNOMIAL_H
+// Output operator for polynomials
+std::ostream& operator<<(std::ostream& os, const Polynomial& p) {
+    for (const auto& term : p.terms) {
+        os << (term.coefficient > 0 ? "+" : "") << term.coefficient << "x^" << term.power << " ";
+    }
+    return os;
+}
