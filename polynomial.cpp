@@ -261,3 +261,5 @@ bool Polynomial::sanityCheck() const {
     }
     return true;
 }
+
+
