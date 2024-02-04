@@ -1,40 +1,47 @@
 #ifndef POLYNOMIAL_H
 #define POLYNOMIAL_H
 
-#include <list>
+#include <iostream>
 #include <initializer_list>
-#include "term.h" // Assuming Term is defined in this header
+#include <list>
+
+#include "term.h"
 
 class Polynomial {
 public:
-    Polynomial();
-    explicit Polynomial(int constant);
-    Polynomial(std::initializer_list<Term> terms);
+  using iterator = std::list<Term>::iterator;
+  using const_iterator = std::list<Term>::const_iterator;
 
-    // Operations
-    Polynomial operator+(const Polynomial& other) const;
-    Polynomial operator-(const Polynomial& other) const;
-    Polynomial operator*(const Polynomial& other) const;
-    Polynomial operator/(const Polynomial& divisor) const; // Division by another Polynomial
+  Polynomial();
+  Polynomial(int b, int a = 0);
+  Polynomial(std::initializer_list<Term> terms);
+  Polynomial(int nCoeff, int coeff[]);
+  int getCoeff(int power) const;
+  int getDegree() const;
+  Polynomial operator+ (const Polynomial& p) const;
+  Polynomial operator* (int scale) const;
+  Polynomial operator* (Term term) const;
+  void operator*= (int scale);
+  Polynomial operator/ (const Polynomial& p) const;
+  bool operator== (const Polynomial& p) const;
 
-    bool operator!=(const Polynomial& other) const;
-
-    // Utility functions
-    int getCoeff(int power) const;
-    int getDegree() const;
-
-    // Iterator access
-    using iterator = std::list<Term>::iterator;
-    using const_iterator = std::list<Term>::const_iterator;
-
-    iterator begin();
-    const_iterator begin() const;
-    iterator end();
-    const_iterator end() const;
+  iterator begin() { return terms.begin(); }
+  iterator end() { return terms.end(); }
+  const_iterator begin() const { return terms.begin(); }
+  const_iterator end() const { return terms.end(); }
 
 private:
-    std::list<Term> terms;
-    void normalize(); // Combine like terms and remove zero-coefficient terms
+  int degree;
+  std::list<Term> terms;
+  void normalize();
+  friend std::ostream& operator<< (std::ostream&, const Polynomial&);
+
+public:
+  bool sanityCheck() const;
 };
 
-#endif // POLYNOMIAL_H
+std::ostream& operator<< (std::ostream&, const Polynomial&);
+inline Polynomial operator* (int by, const Polynomial& p) { return p * by; }
+inline bool operator!= (const Polynomial& p, const Polynomial& q) { return !(p == q); }
+
+#endif
