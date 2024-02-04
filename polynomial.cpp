@@ -40,11 +40,19 @@ Polynomial Polynomial::operator-(const Polynomial& other) const {
 }
 
 Polynomial Polynomial::operator*(const Polynomial& other) const {
-    // Implement multiplication if needed
+    // Implement multiplication
 }
 
-Polynomial Polynomial::operator/(const Term& divisor) const {
-    // Implement division by a Term
+Polynomial Polynomial::operator/(const Polynomial& divisor) const {
+    Polynomial quotient, remainder(*this);
+    // Basic polynomial long division algorithm
+    while (!remainder.terms.empty() && remainder.getDegree() >= divisor.getDegree()) {
+        Term leadTerm = *remainder.terms.rbegin() / *divisor.terms.rbegin();
+        Polynomial temp({leadTerm});
+        quotient = quotient + temp;
+        remainder = remainder - (temp * divisor);
+    }
+    return quotient;
 }
 
 bool Polynomial::operator!=(const Polynomial& other) const {
