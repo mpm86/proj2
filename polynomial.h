@@ -11,13 +11,15 @@ public:
     explicit Polynomial(int constant);
     Polynomial(std::initializer_list<Term> terms);
 
-    // Additional functionality
+    // Operations
     Polynomial operator+(const Polynomial& other) const;
     Polynomial operator-(const Polynomial& other) const;
-    Polynomial operator*(const Polynomial& other) const; // If needed
-    Polynomial operator/(const Term& divisor) const; // For division by a Term, not a full Polynomial
+    Polynomial operator*(const Polynomial& other) const;
+    Polynomial operator/(const Polynomial& divisor) const; // Division by another Polynomial
+
     bool operator!=(const Polynomial& other) const;
 
+    // Utility functions
     int getCoeff(int power) const;
     int getDegree() const;
 
