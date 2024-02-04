@@ -1,52 +1,61 @@
 #include "polynomial.h"
 #include <algorithm>
 
-using namespace std;
-
-// Normalize the polynomial
+// Normalize the polynomial: combine like terms and remove zero-coefficient terms
 void Polynomial::normalize() {
-    terms.remove_if([](const Term& term) { return term.coefficient == 0; });
-    if (!terms.empty()) {
-        terms.sort([](const Term& a, const Term& b) { return a.power < b.power; });
+    terms.sort([](const Term& a, const Term& b) { return a.power < b.power; }); // Sort terms by power
+    auto it = terms.begin();
+    while (it != terms.end()) {
+        auto next_it = std::next(it);
+        if (next_it != terms.end() && it->power == next_it->power) {
+            it->coefficient += next_it->coefficient; // Combine like terms
+            terms.erase(next_it);
+        } else {
+            if (it->coefficient == 0) {
+                it = terms.erase(it); // Remove zero-coefficient terms
+            } else {
+                ++it;
+            }
+        }
     }
 }
 
 // Default constructor
-Polynomial::Polynomial() {
-    // Intentionally left empty
+Polynomial::Polynomial() {}
+
+// Constructor for constant polynomials
+Polynomial::Polynomial(int constant) {
+    if (constant != 0) {
+        terms.push_back(Term(constant, 0));
+    }
 }
 
-// Constructor for a linear or constant polynomial
-Polynomial::Polynomial(int b, int a) {
-    if (a != 0) terms.push_back(Term(a, 1));
-    if (b != 0) terms.push_back(Term(b, 0));
+// Constructor from an initializer list of terms
+Polynomial::Polynomial(std::initializer_list<Term> init_terms) : terms(init_terms) {
     normalize();
 }
 
-// Constructor with an initializer list of terms
-Polynomial::Polynomial(initializer_list<Term> termsList) : terms(termsList) {
-    normalize();
-}
-
-// Get the coefficient of a term with a given power
+// Get the coefficient of a specific power
 int Polynomial::getCoeff(int power) const {
-    auto it = find_if(terms.begin(), terms.end(), [power](const Term& term) { return term.power == power; });
-    return it != terms.end() ? it->coefficient : 0;
+    for (const auto& term : terms) {
+        if (term.power == power) return term.coefficient;
+    }
+    return 0; // Power not found
 }
 
-// Get the degree of the polynomial
+// Get the highest power of the polynomial
 int Polynomial::getDegree() const {
-    return terms.empty() ? -1 : terms.back().power;
+    if (terms.empty()) return -1;
+    return terms.back().power;
 }
 
-// Add two polynomials
-Polynomial Polynomial::operator+(const Polynomial& p) const {
+// Addition of two polynomials
+Polynomial Polynomial::operator+(const Polynomial& other) const {
     Polynomial result;
-    auto it1 = terms.begin(), it2 = p.terms.begin();
-    while (it1 != terms.end() && it2 != p.terms.end()) {
+    auto it1 = terms.begin(), it2 = other.terms.begin();
+    while (it1 != terms.end() && it2 != other.terms.end()) {
         if (it1->power == it2->power) {
-            int sumCoeff = it1->coefficient + it2->coefficient;
-            if (sumCoeff != 0) result.terms.push_back(Term(sumCoeff, it1->power));
+            result.terms.push_back(Term(it1->coefficient + it2->coefficient, it1->power));
             ++it1;
             ++it2;
         } else if (it1->power < it2->power) {
@@ -56,65 +65,27 @@ Polynomial Polynomial::operator+(const Polynomial& p) const {
         }
     }
     result.terms.insert(result.terms.end(), it1, terms.end());
-    result.terms.insert(result.terms.end(), it2, p.terms.end());
-    return result;
-}
-
-// Multiply polynomial by a scalar
-Polynomial Polynomial::operator*(int scale) const {
-    Polynomial result;
-    for (const auto& term : terms) {
-        result.terms.push_back(Term(term.coefficient * scale, term.power));
-    }
+    result.terms.insert(result.terms.end(), it2, other.terms.end());
     result.normalize();
     return result;
 }
 
-// Multiply polynomial by a term
-Polynomial Polynomial::operator*(Term term) const {
-    Polynomial result;
-    for (const auto& t : terms) {
-        result.terms.push_back(Term(t.coefficient * term.coefficient, t.power + term.power));
-    }
-    result.normalize();
-    return result;
+// Polynomial multiplication (not implemented here)
+Polynomial Polynomial::operator*(const Polynomial& other) const {
+    // Implement polynomial multiplication logic
+    return Polynomial();
 }
 
-// Multiply polynomial by a scalar, altering this polynomial
-void Polynomial::operator*=(int scale) {
-    for (auto& term : terms) {
-        term.coefficient *= scale;
-    }
-    normalize();
+// Polynomial subtraction (not implemented here)
+Polynomial Polynomial::operator-(const Polynomial& other) const {
+    // Implement polynomial subtraction logic
+    return Polynomial();
 }
 
-// Polynomial division (not implemented in this example)
-Polynomial Polynomial::operator/(const Polynomial& p) const {
-    // Division logic here
-    return Polynomial(); // Placeholder
-}
-
-// Check if two polynomials are equal
-bool Polynomial::operator==(const Polynomial& p) const {
-    return terms == p.terms;
-}
-
-// Iterator functions implementation
-Polynomial::iterator Polynomial::begin() { return terms.begin(); }
-Polynomial::const_iterator Polynomial::begin() const { return terms.begin(); }
-Polynomial::iterator Polynomial::end() { return terms.end(); }
-Polynomial::const_iterator Polynomial::end() const { return terms.end(); }
-
-// Output operator for Polynomial
-ostream& operator<<(ostream& out, const Polynomial& p) {
+// Output operator for polynomials
+std::ostream& operator<<(std::ostream& os, const Polynomial& p) {
     for (const auto& term : p.terms) {
-        out << term << " ";
+        os << (term.coefficient > 0 ? "+" : "") << term.coefficient << "x^" << term.power << " ";
     }
-    return out;
-}
-
-// Sanity check function (not implemented in this example)
-bool Polynomial::sanityCheck() const {
-    // Sanity check logic here
-    return true; // Placeholder
+    return os;
 }
