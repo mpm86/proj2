@@ -1,91 +1,38 @@
-#include "polynomial.h"
-#include <algorithm>
+#ifndef POLYNOMIAL_H
+#define POLYNOMIAL_H
 
-// Normalize the polynomial: combine like terms and remove zero-coefficient terms
-void Polynomial::normalize() {
-    terms.sort([](const Term& a, const Term& b) { return a.power < b.power; }); // Sort terms by power
-    auto it = terms.begin();
-    while (it != terms.end()) {
-        auto next_it = std::next(it);
-        if (next_it != terms.end() && it->power == next_it->power) {
-            it->coefficient += next_it->coefficient; // Combine like terms
-            terms.erase(next_it);
-        } else {
-            if (it->coefficient == 0) {
-                it = terms.erase(it); // Remove zero-coefficient terms
-            } else {
-                ++it;
-            }
-        }
-    }
-}
+#include <list>
+#include <initializer_list>
+#include "term.h" // Assuming Term is defined in this header
 
-// Default constructor
-Polynomial::Polynomial() {}
+class Polynomial {
+public:
+    Polynomial();
+    explicit Polynomial(int constant);
+    Polynomial(std::initializer_list<Term> terms);
 
-// Constructor for constant polynomials
-Polynomial::Polynomial(int constant) {
-    if (constant != 0) {
-        terms.push_back(Term(constant, 0));
-    }
-}
+    // Additional functionality
+    Polynomial operator+(const Polynomial& other) const;
+    Polynomial operator-(const Polynomial& other) const;
+    Polynomial operator*(const Polynomial& other) const; // If needed
+    Polynomial operator/(const Term& divisor) const; // For division by a Term, not a full Polynomial
+    bool operator!=(const Polynomial& other) const;
 
-// Constructor from an initializer list of terms
-Polynomial::Polynomial(std::initializer_list<Term> init_terms) : terms(init_terms) {
-    normalize();
-}
+    int getCoeff(int power) const;
+    int getDegree() const;
 
-// Get the coefficient of a specific power
-int Polynomial::getCoeff(int power) const {
-    for (const auto& term : terms) {
-        if (term.power == power) return term.coefficient;
-    }
-    return 0; // Power not found
-}
+    // Iterator access
+    using iterator = std::list<Term>::iterator;
+    using const_iterator = std::list<Term>::const_iterator;
 
-// Get the highest power of the polynomial
-int Polynomial::getDegree() const {
-    if (terms.empty()) return -1;
-    return terms.back().power;
-}
+    iterator begin();
+    const_iterator begin() const;
+    iterator end();
+    const_iterator end() const;
 
-// Addition of two polynomials
-Polynomial Polynomial::operator+(const Polynomial& other) const {
-    Polynomial result;
-    auto it1 = terms.begin(), it2 = other.terms.begin();
-    while (it1 != terms.end() && it2 != other.terms.end()) {
-        if (it1->power == it2->power) {
-            result.terms.push_back(Term(it1->coefficient + it2->coefficient, it1->power));
-            ++it1;
-            ++it2;
-        } else if (it1->power < it2->power) {
-            result.terms.push_back(*it1++);
-        } else {
-            result.terms.push_back(*it2++);
-        }
-    }
-    result.terms.insert(result.terms.end(), it1, terms.end());
-    result.terms.insert(result.terms.end(), it2, other.terms.end());
-    result.normalize();
-    return result;
-}
+private:
+    std::list<Term> terms;
+    void normalize(); // Combine like terms and remove zero-coefficient terms
+};
 
-// Polynomial multiplication (not implemented here)
-Polynomial Polynomial::operator*(const Polynomial& other) const {
-    // Implement polynomial multiplication logic
-    return Polynomial();
-}
-
-// Polynomial subtraction (not implemented here)
-Polynomial Polynomial::operator-(const Polynomial& other) const {
-    // Implement polynomial subtraction logic
-    return Polynomial();
-}
-
-// Output operator for polynomials
-std::ostream& operator<<(std::ostream& os, const Polynomial& p) {
-    for (const auto& term : p.terms) {
-        os << (term.coefficient > 0 ? "+" : "") << term.coefficient << "x^" << term.power << " ";
-    }
-    return os;
-}
+#endif // POLYNOMIAL_H
